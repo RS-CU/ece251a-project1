@@ -1,0 +1,184 @@
+C51 COMPILER V9.53.0.0   ASSEMBLER_FOR_THE_OP_CODES                                        03/27/2017 21:30:27 PAGE 1   
+
+
+C51 COMPILER V9.53.0.0, COMPILATION OF MODULE ASSEMBLER_FOR_THE_OP_CODES
+OBJECT MODULE PLACED IN .\src\Assembler for the op codes.OBJ
+COMPILER INVOKED BY: c:\SiliconLabs\SimplicityStudio\v4\developer\toolchains\keil_8051\9.53\BIN\C51.exe C:\Users\rsyed\S
+                    -implicityStudio\v4_workspace\emptyCProject\src\Assembler for the op codes.c OMF2 SMALL DEBUG OBJECTEXTEND ROM(LARGE) WAR
+                    -NINGLEVEL(2) FLOATFUZZY(3) OPTIMIZE(8,SPEED) DEFINE(DEBUG=1) INTVECTOR(0X0000) INTPROMOTE INCDIR(C:/SiliconLabs/Simplici
+                    -tyStudio/v4/developer/sdks/8051/v4.0.0//Device/shared/si8051base;C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/8051/
+                    -v4.0.0//Device/EFM8BB3/inc) PRINT(.\src\Assembler for the op codes.lst) COND PAGEWIDTH(120) PAGELENGTH(65) OBJECT(.\src\
+                    -Assembler for the op codes.OBJ)
+
+line level    source
+
+   1          
+   2          //-----------------------------------------------------------------------------
+   3          // Includes
+   4          //-----------------------------------------------------------------------------
+   5          //#include <iostream>
+   6          #include <stdio.h>
+   7          #include <string.h>
+   8          #include <SI_EFM8BB3_Register_Enums.h>                // SFR declarations
+   9          #include <signal.h>
+*** WARNING C318 IN LINE 9 OF C:\Users\rsyed\SimplicityStudio\v4_workspace\emptyCProject\src\Assembler for the op codes.
+             -c: can't open file 'signal.h'
+  10          #include <stdio.h>
+  11          #include "bsp.h"
+*** WARNING C318 IN LINE 11 OF C:\Users\rsyed\SimplicityStudio\v4_workspace\emptyCProject\src\Assembler for the op codes
+             -.c: can't open file 'bsp.h'
+  12          //-----------------------------------------------------------------------------
+  13          // main() Routine
+  14          // ----------------------------------------------------------------------------
+  15          //
+  16          // Note: the software watchdog timer is not disabled by default in this
+  17          // example, so a long-running program will reset periodically unless
+  18          // the timer is disabled or your program periodically writes to it.
+  19          //
+  20          // Review the "Watchdog Timer" section under the part family's datasheet
+  21          // for details. To find the datasheet, select your part in the
+  22          // Simplicity Launcher and click on "Data Sheet".
+  23          //
+  24          //----------------------------------------------------------------------------- 
+  25          int z;
+  26          int OP1 ;
+  27          int OP2 ;
+  28          int D1 ;
+  29          int D2 ;
+  30          int D3 ;
+  31          int D4 ;
+  32          int y;
+  33          
+  34          #define OP_CODE_COMMANDS 3
+  35          static uint16_t frequency[OP_CODE_COMMANDS] = {
+  36                          3,
+  37                          0,
+  38                          0
+  39          };
+  40          
+  41          static uint8_t OP_CODES = 1;
+  42          
+  43          #define DATA_OUTPUTS 3
+  44          static uint16_t frequencies[DATA_OUTPUTS] = {
+  45                          0,
+  46                          7,
+  47                          3
+C51 COMPILER V9.53.0.0   ASSEMBLER_FOR_THE_OP_CODES                                        03/27/2017 21:30:27 PAGE 2   
+
+  48          
+  49          };
+  50          
+  51          int y = frequency;
+  52          int x = frequencies;
+  53          
+  54          static uint8_t DATA = 1;
+  55          
+  56          
+  57          int main (void)
+  58          {
+  59   1              //char x[10]; //char strings x and y I was gonna use to store the data inputted by the user. X should be 
+             -the operation, Y is the value being inputted. You need to figure out how to actually get that to be read by the rest of 
+             -the program because I was not sure.
+  60   1              //char y[10];
+  61   1              
+  62   1      //      std::cout << "Please choose an operation and number./n and the press enter";
+  63   1              //fgets ( , 10, stdin );
+  64   1              
+  65   1              if (x = 0) { // respective opcodes are produced based on x
+*** WARNING C276 IN LINE 65 OF C:\Users\rsyed\SimplicityStudio\v4_workspace\emptyCProject\src\Assembler for the op codes
+             -.c: constant in condition expression
+  66   2                      OP1 = 1;
+  67   2                      OP2 = 0 ;
+  68   2              }else if (x = 1) {
+*** WARNING C276 IN LINE 68 OF C:\Users\rsyed\SimplicityStudio\v4_workspace\emptyCProject\src\Assembler for the op codes
+             -.c: constant in condition expression
+  69   2                      OP1 = 0 ;
+  70   2                      OP2 = 1  ;
+  71   2              }else if (x = 2) {
+*** WARNING C276 IN LINE 71 OF C:\Users\rsyed\SimplicityStudio\v4_workspace\emptyCProject\src\Assembler for the op codes
+             -.c: constant in condition expression
+  72   2                      OP1 = 0 ;
+  73   2                      OP2 = 0 ;
+  74   2              }else if (x = 3) {
+*** WARNING C276 IN LINE 74 OF C:\Users\rsyed\SimplicityStudio\v4_workspace\emptyCProject\src\Assembler for the op codes
+             -.c: constant in condition expression
+  75   2                      OP1 = 1 ;
+  76   2                      OP2 = 1 ;
+  77   2              }else {
+  78   2                    //
+  79   2                   // cout << "Invalid Operation Code./n";
+  80   2                 }
+  81   1              if ( -8 < y && y < 0) { // Given a decimal number, represents MSB digit
+  82   2                      D4 = 1;
+  83   2              }       else if ( -1 < y && y < 8) {
+  84   2                      D4 = 0  ;
+  85   2              }else {
+  86   2                    // if a number that the ALU cannot handle is entered
+  87   2                    //cout << "Invalid number./n";
+  88   2              }
+  89   1              if (( 3 < y && y < 8)|| (-5 < y && y < -0))     { //represents second MSB digit
+  90   2                              D3 = 1 ;
+  91   2              } else {
+  92   2                              D3 = 0;
+  93   2              }
+  94   1              if ( (1 < y && y < 4)|| (5 < y && y < 8) ||( -3 < y && y < 0)||( -7 < y && y < -4))     { // represents secon
+             -d LSB digit
+  95   2                              D2 = 1 ;
+  96   2              } else {
+  97   2                              D2 = 0 ;
+  98   2              }
+  99   1              if (y % 2 == 0){ //represents LSB digit
+C51 COMPILER V9.53.0.0   ASSEMBLER_FOR_THE_OP_CODES                                        03/27/2017 21:30:27 PAGE 3   
+
+ 100   2                      D1= 0 ;
+ 101   2              }
+ 102   1              else {
+ 103   2                      D1 = 1 ;
+ 104   2              }
+ 105   1      
+ 106   1      
+ 107   1              void clock_signal (int s);
+*** ERROR C141 IN LINE 107 OF C:\Users\rsyed\SimplicityStudio\v4_workspace\emptyCProject\src\Assembler for the op codes.
+             -c: syntax error near 'void'
+ 108   1              void clock_signal (int s) {
+ 109   1                      z = 1;
+ 110   1                      alarm(1);
+ 111   1                      signal(SIGALRM, clock_signal);
+ 112   1              }
+ 113          
+ 114          
+ 115          
+ 116                  if (z==1)
+ 117                  {
+ 118                          if(DATA == DATA_OUTPUTS-1)
+ 119                          {
+ 120                          DATA = 1;
+ 121                  }
+ 122                          else {
+ 123                                  DATA++;
+ 124                          }
+ 125                  }
+ 126          
+ 127                  if (z==1)
+ 128                          {
+ 129                                  if(OP_CODES == OP_CODE_COMMANDS-1)
+ 130                                  {
+ 131                                  OP_CODES = 1;
+ 132                          }
+ 133                                  else {
+ 134                                          OP_CODES++;
+ 135                                  }
+ 136                          }
+ 137          
+ 138                  SI_SBIT(OP1, SFR_P0, 1); //setting the pins that correspond to each part of the opcode
+ 139                  SI_SBIT(OP2, SFR_P0, 2);
+ 140                  SI_SBIT(D1, SFR_P0, 3);
+ 141                  SI_SBIT(D2, SFR_P0, 4);
+ 142                  SI_SBIT(D3, SFR_P0, 5);
+ 143                  SI_SBIT(D4, SFR_P0, 6);
+ 144                  SI_SBIT(z, SFR_P0, 7);
+ 145                  
+ 146                  
+ 147          }
+
+C51 COMPILATION COMPLETE.  6 WARNING(S),  1 ERROR(S)
