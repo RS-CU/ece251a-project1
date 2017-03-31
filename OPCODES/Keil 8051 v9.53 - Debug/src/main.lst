@@ -1,0 +1,159 @@
+C51 COMPILER V9.53.0.0   MAIN                                                              03/30/2017 22:08:03 PAGE 1   
+
+
+C51 COMPILER V9.53.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\src\main.OBJ
+COMPILER INVOKED BY: c:\SiliconLabs\SimplicityStudio\v4\developer\toolchains\keil_8051\9.53\BIN\C51.exe C:\Users\Ali Rah
+                    -man\SimplicityStudio\v4_workspace\OPCODES\src\main.c OMF2 SMALL DEBUG OBJECTEXTEND ROM(LARGE) WARNINGLEVEL(2) FLOATFUZZY
+                    -(3) OPTIMIZE(8,SPEED) DEFINE(DEBUG=1) INTVECTOR(0X0000) INTPROMOTE INCDIR(C:/Users/Ali%25252520Rahman/SimplicityStudio/v
+                    -4_workspace/OPCODES/inc;C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/8051/v4.0.3//Device/shared/si8051base;C:/Silic
+                    -onLabs/SimplicityStudio/v4/developer/sdks/8051/v4.0.3//Device/EFM8BB3/inc) PRINT(.\src\main.lst) COND PAGEWIDTH(120) PAG
+                    -ELENGTH(65) OBJECT(.\src\main.OBJ)
+
+line level    source
+
+   1          //-----------------------------------------------------------------------------
+   2          // Includes
+   3          //-----------------------------------------------------------------------------
+   4          //#include <iostream>
+   5          #include "InitDevice.c"
+   6          #include <stdio.h>
+   7          #include <string.h>
+   8          #include <SI_EFM8BB3_Register_Enums.h>                // SFR declarations
+   9          //#include <time.h>
+  10          #include <stdio.h>
+  11          //#include "bsp.h"
+  12          //-----------------------------------------------------------------------------
+  13          // main() Routine
+  14          // ----------------------------------------------------------------------------
+  15          //
+  16          // Note: the software watchdog timer is not disabled by default in this
+  17          // example, so a long-running program will reset periodically unless
+  18          // the timer is disabled or your program periodically writes to it.
+  19          //
+  20          // Review the "Watchdog Timer" section under the part family's datasheet
+  21          // for details. To find the datasheet, select your part in the
+  22          // Simplicity Launcher and click on "Data Sheet".
+  23          //
+  24          //-----------------------------------------------------------------------------
+  25          int OP1 ;
+  26          int OP2 ;
+  27          int D1 ;
+  28          int D2 ;
+  29          int D3 ;
+  30          int D4 ;
+  31          int clockdelay = 4000;
+  32          //#define y = OP_CODES;
+  33          //#define x = DATA;
+  34          int z = 0;
+  35          
+  36          void CLOCKDEL() {
+  37   1              for(z=0;z<=clockdelay;z++){
+  38   2              }
+  39   1      }
+  40          
+  41          //#define OP_CODE_COMMANDS 3
+  42          //static uint16_t [OP_CODE_COMMANDS] = {
+  43          //              3,
+  44          //              0,
+  45          //              0
+  46          //};
+  47          
+  48          //static uint8_t OP_CODES = 1;
+  49          
+  50          //#define DATA_OUTPUTS 3
+  51          //static uint16_t frequency[DATA_OUTPUTS] = {
+C51 COMPILER V9.53.0.0   MAIN                                                              03/30/2017 22:08:03 PAGE 2   
+
+  52          //              0,
+  53          //              7,
+  54          //              3
+  55          //};
+  56          
+  57          //static uint8_t DATA = 1;
+  58          
+  59          int x[3]={3,0,0};
+  60          int y[3]={0,7,3};
+  61          
+  62          int main (void)
+  63          {
+  64   1              //char x[10]; //char strings x and y I was gonna use to store the data inputted by the user. X should be 
+             -the operation, Y is the value being inputted. You need to figure out how to actually get that to be read by the rest of 
+             -the program because I was not sure.
+  65   1              //char y[10];
+  66   1      
+  67   1      //      std::cout << "Please choose an operation and number./n and the press enter";
+  68   1              //fgets ( , 10, stdin );
+  69   1              if (x == 0) { // respective opcodes are produced based on x
+  70   2                      OP1 = 1;
+  71   2                      OP2 = 0 ;
+  72   2              }else if (x == 1) {
+  73   2                      OP1 = 0 ;
+  74   2                      OP2 = 1  ;
+  75   2              }else if (x == 2) {
+  76   2                      OP1 = 0 ;
+  77   2                      OP2 = 0 ;
+  78   2              }else if (x == 3) {
+  79   2                      OP1 = 1 ;
+  80   2                      OP2 = 1 ;
+  81   2              }else {
+  82   2                    //
+  83   2                   // cout << "Invalid Operation Code./n";
+  84   2                 }
+  85   1              if ( -8 <= y && y <= 0) { // Given a decimal number, represents MSB digit
+*** ERROR C193 IN LINE 85 OF C:\Users\Ali Rahman\SimplicityStudio\v4_workspace\OPCODES\src\main.c: '<=': bad operand typ
+             -e
+  86   2                      D4 = 1;
+  87   2              }       else if ( -1 < y && y < 8) {
+  88   2                      D4 = 0  ;
+  89   2              }else {
+  90   2                    // if a number that the ALU cannot handle is entered
+  91   2                    //cout << "Invalid number./n";
+  92   2              }
+  93   1              if (( 3 < y && y < 8)|| (-5 < y && y < -0))     { //represents second MSB digit
+  94   2                              D3 = 1 ;
+  95   2              } else {
+  96   2                              D3 = 0;
+  97   2              }
+  98   1              if ( (1 < y && y < 4)|| (5 < y && y < 8) ||( -3 < y && y < 0)||( -7 < y && y < -4))     { // represents secon
+             -d LSB digit
+  99   2                              D2 = 1 ;
+ 100   2              } else {
+ 101   2                              D2 = 0 ;
+ 102   2              }
+ 103   1              if (y % 2 == 0){ //represents LSB digit
+ 104   2                      D1= 0 ;
+ 105   2              }
+ 106   1              else {
+ 107   2                      D1 = 1 ;
+ 108   2              }
+ 109   1      
+C51 COMPILER V9.53.0.0   MAIN                                                              03/30/2017 22:08:03 PAGE 3   
+
+ 110   1      
+ 111   1              //void clock_signal (int s);
+ 112   1              //void clock_signal (int s) {
+ 113   1              //      z = 1;
+ 114   1              //      alarm(1);
+ 115   1              //      signal(SIGALRM, clock_signal);
+ 116   1              //}
+ 117   1              //ADD CLOCK SIGNAL
+ 118   1      
+ 119   1              for(z=1;x<10;x++)
+*** ERROR C187 IN LINE 119 OF C:\Users\Ali Rahman\SimplicityStudio\v4_workspace\OPCODES\src\main.c: not an lvalue
+ 120   1      
+ 121   1      
+ 122   1              P0_B1 = OP1;
+ 123   1              P0_B2 = OP2;
+ 124   1              P0_B3 = D1;
+ 125   1              P0_B4 = D2;
+ 126   1              P0_B5 = D3;
+ 127   1              P0_B6 = D4;
+ 128   1              P0_B7 = z;
+ 129   1      
+ 130   1      
+ 131   1      
+ 132   1      while (1);
+ 133   1      }
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  2 ERROR(S)
