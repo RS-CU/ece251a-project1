@@ -1,0 +1,125 @@
+C51 COMPILER V9.53.0.0   MAIN                                                              04/17/2017 15:59:47 PAGE 1   
+
+
+C51 COMPILER V9.53.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\src\main.OBJ
+COMPILER INVOKED BY: c:\SiliconLabs\SimplicityStudio\v4\developer\toolchains\keil_8051\9.53\BIN\C51.exe C:\Users\Ali Rah
+                    -man\SimplicityStudio\v4_workspace\EFM8BB3_FunctionGenerator_2\src\main.c OMF2 SMALL DEBUG OBJECTEXTEND ROM(LARGE) WARNIN
+                    -GLEVEL(2) FLOATFUZZY(3) OPTIMIZE(8,SPEED) DEFINE(DEBUG=1) INTVECTOR(0X0000) INTPROMOTE INCDIR(C:\Users\Ali Rahman\Simpli
+                    -cityStudio\v4_workspace\EFM8BB3_FunctionGenerator_2\inc\graphics;C:\Users\Ali Rahman\SimplicityStudio\v4_workspace\EFM8B
+                    -B3_FunctionGenerator_2\inc;C:\Users\Ali Rahman\SimplicityStudio\v4_workspace\EFM8BB3_FunctionGenerator_2\inc\config;C:/S
+                    -iliconLabs/SimplicityStudio/v4/developer/sdks/8051/v4.0.3//kits/common/bsp;C:/SiliconLabs/SimplicityStudio/v4/developer/
+                    -sdks/8051/v4.0.3//kits/EFM8BB3_SLSTK2022A/config;C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/8051/v4.0.3//Device/E
+                    -FM8BB3/peripheral_driver/inc;C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/8051/v4.0.3//kits/common/drivers/efm8_joy
+                    -stick;C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/8051/v4.0.3//kits/common/drivers/efm8_memory_lcd/inc;C:/SiliconL
+                    -abs/SimplicityStudio/v4/developer/sdks/8051/v4.0.3//kits/common/drivers/efm8_memory_lcd/inc/graphics;C:/SiliconLabs/Simp
+                    -licityStudio/v4/developer/sdks/8051/v4.0.3//kits/common/drivers/efm8_memory_lcd/inc/config;C:/SiliconLabs/SimplicityStud
+                    -io/v4/developer/sdks/8051/v4.0.3//Device/shared/si8051base;C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/8051/v4.0.3
+                    -//Device/EFM8BB3/inc;C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/8051/v4.0.3//kits/common/drivers/efm8_retargetser
+                    -ial) PRINT(.\src\main.lst) COND PAGEWIDTH(120) PAGELENGTH(65) OBJECT(.\src\main.OBJ)
+
+line level    source
+
+   1          //-----------------------------------------------------------------------------
+   2          // main.c
+   3          //-----------------------------------------------------------------------------
+   4          // Copyright 2015 Silicon Laboratories, Inc.
+   5          // http://developer.silabs.com/legal/version/v11/Silicon_Labs_Software_License_Agreement.txt
+   6          //
+   7          // Program Description:
+   8          //
+   9          // Use scope to observe DAC outputs on P3.0 and P3.1.
+  10          // Move joystick left/right to change functions.
+  11          // Move joystick up/down to change frequency.
+  12          //
+  13          // Resources:
+  14          //   SYSCLK - 24.5 MHz HFOSC0 / 1
+  15          //   DAC0
+  16          //   DAC1
+  17          //   DAC2
+  18          //   DAC3
+  19          //   ADC0   - 10-bit, VREF = VDD (3.3 V)
+  20          //   SPI0   - 1 MHz
+  21          //   Timer2 - 2 MHz (SPI CS delay)
+  22          //   Timer3 - 1 kHz (1 ms tick)
+  23          //   Timer4 - 150 kHz interrupt (DAC update trigger)
+  24          //   P0.2   - Push button (kill splash screen)
+  25          //   P0.3   - Push button (kill splash screen)
+  26          //   P0.6   - SPI SCK
+  27          //   P1.0   - SPI MOSI
+  28          //   P1.7   - ADC input / Joystick (analog voltage divider)
+  29          //   P2.6   - SPI CS (Active High)
+  30          //   P3.0   - DAC0 output
+  31          //   P3.1   - DAC1 output
+  32          //   P3.4   - Display enable
+  33          //
+  34          //-----------------------------------------------------------------------------
+  35          // How To Test: EFM8BB3 STK
+  36          //-----------------------------------------------------------------------------
+  37          // 1) Place the switch in "AEM" mode.
+  38          // 2) Connect the EFM8BB3 STK board to a PC using a mini USB cable.
+  39          // 3) Compile and download code to the EFM8BB3 STK board.
+  40          //    In Simplicity Studio IDE, select Run -> Debug from the menu bar,
+  41          //    click the Debug button in the quick menu, or press F11.
+  42          // 4) Run the code.
+  43          //    In Simplicity Studio IDE, select Run -> Resume from the menu bar,
+C51 COMPILER V9.53.0.0   MAIN                                                              04/17/2017 15:59:47 PAGE 2   
+
+  44          //    click the Resume button in the quick menu, or press F8.
+  45          // 5) The Function Generator demo should start.
+  46          //    Press any button, move joystick, or wait 4 sec to kill splash screen
+  47          //    Use scope to observe DAC output on P3.0 and P3.1.
+  48          //    Move the joystick left/right to change functions.
+  49          //    Move the joystick up/down to increase/decrease the frequency.
+  50          //
+  51          // Target:         EFM8BB3
+  52          // Tool chain:     Generic
+  53          //
+  54          // Release 0.1 (ST)
+  55          //    - Initial Revision
+  56          //    - 15 JUL 2015
+  57          //
+  58          
+  59          /////////////////////////////////////////////////////////////////////////////
+  60          // Includes
+  61          /////////////////////////////////////////////////////////////////////////////
+  62          #include "LED.h"
+  63          #include "bsp.h"
+  64          #include "InitDevice.h"
+  65          #include "disp.h"
+  66          #include "function_generator.h"
+  67          
+  68          //---------------------------------------------------------------------------
+  69          // main() Routine
+  70          // --------------------------------------------------------------------------
+  71          int main(void)
+  72          {
+  73   1        enter_DefaultMode_from_RESET();
+  74   1      
+  75   1        // Enable all interrupts
+  76   1        IE_EA = 1;
+  77   1        LED();
+  78   1        DISP_Init();
+  79   1      
+  80   1        FunctionGenerator_main();
+  81   1      
+  82   1        while (1);
+  83   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     16    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

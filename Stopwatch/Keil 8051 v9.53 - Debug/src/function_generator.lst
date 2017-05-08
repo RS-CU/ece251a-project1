@@ -1,0 +1,269 @@
+C51 COMPILER V9.53.0.0   FUNCTION_GENERATOR                                                04/17/2017 19:00:36 PAGE 1   
+
+
+C51 COMPILER V9.53.0.0, COMPILATION OF MODULE FUNCTION_GENERATOR
+OBJECT MODULE PLACED IN .\src\function_generator.OBJ
+COMPILER INVOKED BY: c:\SiliconLabs\SimplicityStudio\v4\developer\toolchains\keil_8051\9.53\BIN\C51.exe C:\Users\Ali Rah
+                    -man\SimplicityStudio\v4_workspace\EFM8BB3_FunctionGenerator_2\src\function_generator.c OMF2 SMALL DEBUG OBJECTEXTEND ROM
+                    -(LARGE) WARNINGLEVEL(2) FLOATFUZZY(3) OPTIMIZE(8,SPEED) DEFINE(DEBUG=1) INTVECTOR(0X0000) INTPROMOTE INCDIR(C:\Users\Ali
+                    - Rahman\SimplicityStudio\v4_workspace\EFM8BB3_FunctionGenerator_2\inc\graphics;C:\Users\Ali Rahman\SimplicityStudio\v4_w
+                    -orkspace\EFM8BB3_FunctionGenerator_2\inc;C:\Users\Ali Rahman\SimplicityStudio\v4_workspace\EFM8BB3_FunctionGenerator_2\i
+                    -nc\config;C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/8051/v4.0.3//kits/common/bsp;C:/SiliconLabs/SimplicityStudio
+                    -/v4/developer/sdks/8051/v4.0.3//kits/EFM8BB3_SLSTK2022A/config;C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/8051/v4
+                    -.0.3//Device/EFM8BB3/peripheral_driver/inc;C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/8051/v4.0.3//kits/common/dr
+                    -ivers/efm8_joystick;C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/8051/v4.0.3//kits/common/drivers/efm8_memory_lcd/i
+                    -nc;C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/8051/v4.0.3//kits/common/drivers/efm8_memory_lcd/inc/graphics;C:/Si
+                    -liconLabs/SimplicityStudio/v4/developer/sdks/8051/v4.0.3//kits/common/drivers/efm8_memory_lcd/inc/config;C:/SiliconLabs/
+                    -SimplicityStudio/v4/developer/sdks/8051/v4.0.3//Device/shared/si8051base;C:/SiliconLabs/SimplicityStudio/v4/developer/sd
+                    -ks/8051/v4.0.3//Device/EFM8BB3/inc;C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/8051/v4.0.3//kits/common/drivers/ef
+                    -m8_retargetserial) PRINT(.\src\function_generator.lst) COND PAGEWIDTH(120) PAGELENGTH(65) OBJECT(.\src\function_generato
+                    -r.OBJ)
+
+line level    source
+
+   1          /**************************************************************************//**
+   2           * Copyright (c) 2015 by Silicon Laboratories Inc. All rights reserved.
+   3           *
+   4           * http://developer.silabs.com/legal/version/v11/Silicon_Labs_Software_License_Agreement.txt
+   5           *****************************************************************************/
+   6          ///////////////////////////////////////////////////////////////////////////////
+   7          // function_generator.c
+   8          ///////////////////////////////////////////////////////////////////////////////
+   9          
+  10          
+  11          ///////////////////////////////////////////////////////////////////////////////
+  12          // Includes
+  13          ///////////////////////////////////////////////////////////////////////////////
+  14          
+  15          #include <LED.h>
+  16          #include "bsp.h"
+  17          #include "tick.h"
+  18          #include "disp.h"
+  19          #include "render.h"
+  20          #include "thinfont.h"
+  21          #include "function_generator.h"
+  22          #include "square.h"
+  23          #include "waveform_tables.h"
+  24          #include "retargetserial.h"
+  25          
+  26          int hour = 0;
+  27          int min = 0;
+  28          int sec = 0;
+  29          int hourprime = 0;
+  30          int minprime = 0;
+  31          int secprime = 0;
+  32          int on = 1;
+  33          int stop = 0;
+  34          int ms = 0;
+  35          ///////////////////////////////////////////////////////////////////////////////
+  36          // Globals
+  37          ///////////////////////////////////////////////////////////////////////////////
+  38          
+  39          // Generic line buffer
+  40          SI_SEGMENT_VARIABLE(Line[DISP_BUF_SIZE], uint8_t, RENDER_LINE_SEG);
+  41          
+  42          // Demo state variables
+C51 COMPILER V9.53.0.0   FUNCTION_GENERATOR                                                04/17/2017 19:00:36 PAGE 2   
+
+  43          // Frequency selection
+  44          #define SUPPORTED_NUM_FREQ 8
+  45          static SI_SEGMENT_VARIABLE(frequency[SUPPORTED_NUM_FREQ], uint16_t, SI_SEG_XDATA) = {
+  46                          1L,
+  47                          1L,
+  48                          1L,
+  49                          1L,
+  50                          1L,
+  51                          1L,
+  52                          1L,
+  53                          1L
+  54          };
+  55          
+  56          // Current Frequency Selection
+  57          static uint8_t currentFreqIndex = 3;
+  58          
+  59          // Phase offset (updated when frequency is changed)
+  60          static uint16_t phaseOffset = 100 * PHASE_PRECISION / SAMPLE_RATE_DAC;
+  61          
+  62          // Kill splash
+  63          KillSpash killSplashFlag = SHOW_SPLASH;
+  64          
+  65          ///////////////////////////////////////////////////////////////////////////////
+  66          // Supporting Functions
+  67          ///////////////////////////////////////////////////////////////////////////////
+  68          //-----------------------------------------------------------------------------
+  69          // drawScreenText
+  70          //-----------------------------------------------------------------------------
+  71          //
+  72          // Show one line of text on the screen
+  73          //
+  74          // str - pointer to string text (0 - 21 characters) to display
+  75          // rowNum - row number of the screen (0 - 127)
+  76          // fontScale - font scaler (1 - 4)
+  77          //
+  78          static void drawScreenText(SI_VARIABLE_SEGMENT_POINTER(str, char, RENDER_STR_SEG), uint8_t rowNum)
+  79          {
+  80   1        uint8_t i;
+  81   1      
+  82   1        for (i = 0; i < FONT_HEIGHT; i++)
+  83   1        {
+  84   2          RENDER_ClrLine(Line);
+  85   2          RENDER_StrLine(Line, 4, i, str);
+  86   2          DISP_WriteLine(rowNum + i, Line);
+  87   2        }
+  88   1      }
+  89          
+  90          static void drawScreenTime(void)
+  91          {
+  92   1        char hourStr[22];
+  93   1      
+  94   1        // display frequency on screen
+  95   1        RETARGET_SPRINTF(hourStr, " TIME: %d : %d : %d ", hour, min, sec);
+  96   1      
+  97   1        drawScreenText(hourStr, 48);
+  98   1      }
+  99          static void drawScreenLap(void)
+ 100          {
+ 101   1        char lapStr[22];
+ 102   1      
+ 103   1        // display frequency on screen
+ 104   1        RETARGET_SPRINTF(lapStr, " LAP:  %d : %d : %d ", hourprime, minprime, secprime);
+ 105   1      
+C51 COMPILER V9.53.0.0   FUNCTION_GENERATOR                                                04/17/2017 19:00:36 PAGE 3   
+
+ 106   1        drawScreenText(lapStr, 58);
+ 107   1      }
+ 108          static void drawScreenMS(void)
+ 109          {
+ 110   1        char msStr[22];
+ 111   1      
+ 112   1        // display frequency on screen
+ 113   1        RETARGET_SPRINTF(msStr, " Z :   %d ", ms);
+ 114   1      
+ 115   1        drawScreenText(msStr, 68);
+ 116   1      }
+ 117          //-----------------------------------------------------------------------------
+ 118          // drawSplash
+ 119          //-----------------------------------------------------------------------------
+ 120          //
+ 121          // Display splash screen with instructions.
+ 122          //
+ 123          static void drawSplash(void)
+ 124          {
+ 125   1              uint16_t ticks = GetTickCount();
+ 126   1      
+ 127   1              drawScreenText(" __________________", 7);
+ 128   1              drawScreenText(" STOPWATCH", 4);
+ 129   1      
+ 130   1      
+ 131   1              while (((GetTickCount() - ticks) < 30) &&
+ 132   1                              (killSplashFlag == SHOW_SPLASH)
+ 133   1                              );
+ 134   1      }
+ 135          
+ 136          ///////////////////////////////////////////////////////////////////////////////
+ 137          // Interrupt Service Routines
+ 138          ///////////////////////////////////////////////////////////////////////////////
+ 139          
+ 140          SI_INTERRUPT_USING (TIMER4_ISR, TIMER4_IRQn, 1)
+ 141          {
+ 142   1        static uint16_t phaseAcc = 0;       // Holds phase accumulator
+ 143   1      
+ 144   1        SI_UU16_t temp;   // The temporary value that holds
+ 145   1                                                                                // value before being written
+ 146   1                                                                                // to the DAC
+ 147   1        
+ 148   1        TMR4CN0 &= ~TMR3CN0_TF3H__BMASK;    // Clear Timer4 overflow flag
+ 149   1      
+ 150   1        ms++;
+ 151   1      
+ 152   1        phaseAcc += phaseOffset;            // Increment phase accumulator
+ 153   1      
+ 154   1        // Read the table value
+ 155   1        temp.u16 = squareTable[phaseAcc >> 8];
+ 156   1      
+ 157   1        // Set the value of <temp> to the next output of DAC at full-scale
+ 158   1        // amplitude. The rails are 0x000 and 0xFFF. DAC low byte must be
+ 159   1        // written first.
+ 160   1      
+ 161   1        SFRPAGE = PG4_PAGE;
+ 162   1      
+ 163   1        DAC1L = DAC0L = temp.u8[LSB];
+ 164   1        DAC1H = DAC0H = temp.u8[MSB];
+ 165   1      }
+ 166          
+ 167          //-----------------------------------------------------------------------------
+ 168          // PMATCH_ISR
+C51 COMPILER V9.53.0.0   FUNCTION_GENERATOR                                                04/17/2017 19:00:36 PAGE 4   
+
+ 169          //-----------------------------------------------------------------------------
+ 170          //
+ 171          // The Port Match interrupt occurs whenever (Pn & PnMASK) != (PnMAT & PnMASK).
+ 172          // We must disable the interrupt and wait until the button is released in
+ 173          // main, or else the interrupt will trigger multiple times.  It is generally
+ 174          // not good practice to sit in an ISR for int32_t periods of time.
+ 175          //
+ 176          SI_INTERRUPT(PMATCH_ISR, PMATCH_IRQn)
+ 177          {
+ 178   1              stop++;
+ 179   1              if(stop>4){
+ 180   2                      stop=1;
+ 181   2              }
+ 182   1                      hourprime = hour;
+ 183   1                      minprime = min;
+ 184   1                      secprime = sec;
+ 185   1                      SFRPAGE = LEGACY_PAGE;              // EIE1 on SFRPAGE 0x00
+ 186   1                      EIE1 &= ~0x02;
+ 187   1      }
+ 188          
+ 189          ///////////////////////////////////////////////////////////////////////////////
+ 190          // Driver Function
+ 191          ///////////////////////////////////////////////////////////////////////////////
+ 192          
+ 193          void FunctionGenerator_main(void)
+ 194          {
+ 195   1      
+ 196   1        DISP_ClearAll();
+ 197   1      
+ 198   1        while(1)
+ 199   1        {
+ 200   2                if(on == 1){
+ 201   3                   if (ms < 30300){
+ 202   4      
+ 203   4                   }
+ 204   3                   else{
+ 205   4                       sec++;
+ 206   4                   }
+ 207   3                       if (sec == 60){
+ 208   4                               min++;
+ 209   4                               sec = 0;
+ 210   4                       }
+ 211   3                      if (min == 60){
+ 212   4                                       hour++;
+ 213   4                                       min = 0;
+ 214   4                               }
+ 215   3                }
+ 216   2               drawSplash();
+ 217   2               drawScreenTime();
+ 218   2               drawScreenLap();
+ 219   2        }
+ 220   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    480    ----
+   CONSTANT SIZE    =   4412    ----
+   XDATA SIZE       =     32    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     24      75
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+C51 COMPILER V9.53.0.0   FUNCTION_GENERATOR                                                04/17/2017 19:00:36 PAGE 5   
+
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
